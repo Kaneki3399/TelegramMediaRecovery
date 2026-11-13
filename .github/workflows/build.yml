@@ -17,6 +17,18 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Normalize source line endings
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path . -Recurse -File |
+            Where-Object { $_.Extension -in '.cs', '.csproj', '.props', '.targets', '.editorconfig' } |
+            ForEach-Object {
+              $content = [System.IO.File]::ReadAllText($_.FullName)
+              $content = $content -replace "`r`n", "`n"
+              $content = $content -replace "`r", "`n"
+              [System.IO.File]::WriteAllText($_.FullName, $content, [System.Text.UTF8Encoding]::new($false))
+            }
+
       - name: Publish Windows x64 self-contained
         run: dotnet publish src/TelegramMediaRecovery.Cli/TelegramMediaRecovery.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:RunAnalyzers=false -p:EnforceCodeStyleInBuild=false -o publish
 
