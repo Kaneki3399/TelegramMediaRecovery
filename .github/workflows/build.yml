@@ -20,8 +20,8 @@ jobs:
       - name: Normalize source line endings
         shell: pwsh
         run: |
-          Get-ChildItem -Path . -Recurse -File |
-            Where-Object { $_.Extension -in '.cs', '.csproj', '.props', '.targets', '.editorconfig' } |
+          Get-ChildItem -Path src -Recurse -File |
+            Where-Object { $_.Extension -in '.cs', '.csproj', '.props', '.targets' } |
             ForEach-Object {
               $content = [System.IO.File]::ReadAllText($_.FullName)
               $content = $content -replace "`r`n", "`n"
@@ -30,7 +30,18 @@ jobs:
             }
 
       - name: Publish Windows x64 self-contained
-        run: dotnet publish src/TelegramMediaRecovery.Cli/TelegramMediaRecovery.Cli.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:RunAnalyzers=false -p:EnforceCodeStyleInBuild=false -o publish
+        shell: pwsh
+        run: |
+          dotnet publish src/TelegramMediaRecovery.Cli/TelegramMediaRecovery.Cli.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:RunAnalyzers=false `
+            -p:EnableNETAnalyzers=false `
+            -p:EnforceCodeStyleInBuild=false `
+            -p:BuildProjectReferences=true `
+            -o publish
 
       - name: Upload Windows executable
         uses: actions/upload-artifact@v4
